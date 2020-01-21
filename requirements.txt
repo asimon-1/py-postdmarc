@@ -1,0 +1,12 @@
+# Testing
+pytest
+pytest-cov
+pytest-subtests
+coverage
+
+# Linting
+black
+flake8
+pydocstyle
+flake8-eradicate
+bandit
