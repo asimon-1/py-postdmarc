@@ -66,9 +66,14 @@ class PostDmarc:
         }
 
         try:
-            return mapping[response.status_code]
+            mapped_status_code = mapping[response.status_code]
         except KeyError:
-            return errors.UnrecognizedStatusCodeError
+            mapped_status_code = errors.UnrecognizedStatusCodeError
+
+        if mapped_status_code is not None:
+            raise mapped_status_code(response.json()["message"])
+        else:
+            return None
 
     def create_record(self, email, domain):
         """Create a new DMARC record for a given domain and email."""
@@ -107,8 +112,11 @@ class PostDmarc:
         pass
 
     def list_reports(self):
-        """List all received DMARC reports for a given domain with the ability to filter
-        results by a single date or date range."""
+        """List all received DMARC reports for a given domain.
+
+        List all received DMARC reports for a given domain with the ability to filter
+        results by a single date or date range.
+        """
         pass
 
     def get_report(self):

@@ -2,7 +2,7 @@ import unittest
 import os
 from unittest.mock import patch
 import postdmarc.postdmarc as pdm
-from postdmarc.pdm_exceptions import APIKeyMissingError
+import postdmarc.pdm_exceptions as errors
 
 
 class TestResponse(unittest.TestCase):
@@ -16,7 +16,22 @@ class TestResponse(unittest.TestCase):
         pass
 
     @patch.object(pdm.requests.Session, "post")
+    def test_status_code_500(self, mock_post):
+        mock_post.return_value.status_code = 500
+        mock_post.return_value.json.return_value = {
+            "message": "Failed to create a subscription "
+            "for the specified email address."
+        }
+        self.assertRaises(
+            errors.InternalServerError,
+            self.connection.create_record,
+            "tema@wildbit.com",
+            "postmarkapp.com",
+        )
+
+    @patch.object(pdm.requests.Session, "post")
     def test_create_record(self, mock_post):
+        mock_post.return_value.status_code = 200
         mock_post.return_value.json.return_value = {
             "domain": "postmarkapp.com",
             "public_token": "1mVgKNr5scA",
@@ -87,4 +102,4 @@ class TestAPIKey(unittest.TestCase):
     @patch.dict("os.environ", {}, clear=True)
     def test_api_key_not_found(self):
         """Ensure that a missing API key raises an error."""
-        self.assertRaises(APIKeyMissingError, pdm.PostDmarc)
+        self.assertRaises(errors.APIKeyMissingError, pdm.PostDmarc)
