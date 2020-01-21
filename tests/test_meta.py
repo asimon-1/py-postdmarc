@@ -3,6 +3,7 @@ import unittest
 import subprocess
 
 MAX_LINE_LENGTH = 88
+MODULE_NAME = "postdmarc"
 
 
 class BaseTest(unittest.TestCase):
@@ -96,7 +97,7 @@ class TestStyle(BaseTest):
         """
         self.run_module(
             "pydocstyle",
-            "--match-dir=^((?!tests).)*$",
+            f"--match-dir=^{MODULE_NAME}.*$",
             "--select=D100,D101,D102,D103,D104,D105,D106,D107,D300,D301",
         )
 
