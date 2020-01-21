@@ -2,7 +2,7 @@ import unittest
 import os
 from unittest.mock import patch
 import postdmarc.postdmarc as pdm
-from postdmarc.pm_exceptions import APIKeyMissingError
+from postdmarc.pdm_exceptions import APIKeyMissingError
 
 
 class TestResponse(unittest.TestCase):
@@ -48,20 +48,20 @@ class TestAPIKey(unittest.TestCase):
     def test_load_api_key_env(self):
         """Ensure the API key is loaded from environment variables correctly."""
         self.assertIn("POSTMARK_API_KEY", os.environ)
-        session = pdm.setup()
-        self.assertIn("X-Api-Token", session.headers)
-        self.assertEqual("testvalue", session.headers["X-Api-Token"])
+        connection = pdm.PostDmarc()
+        self.assertIn("X-Api-Token", connection.session.headers)
+        self.assertEqual("testvalue", connection.session.headers["X-Api-Token"])
 
     @patch.dict("os.environ", {}, clear=True)
     def test_load_api_key_file(self):
         """Ensure that the API key is loaded from a file correctly."""
         with open(self.path, "w") as f:
             f.write("testvalue-file")
-        session = pdm.setup()
-        self.assertIn("X-Api-Token", session.headers)
-        self.assertEqual("testvalue-file", session.headers["X-Api-Token"])
+        connection = pdm.PostDmarc()
+        self.assertIn("X-Api-Token", connection.session.headers)
+        self.assertEqual("testvalue-file", connection.session.headers["X-Api-Token"])
 
     @patch.dict("os.environ", {}, clear=True)
     def test_api_key_not_found(self):
         """Ensure that a missing API key raises an error."""
-        self.assertRaises(APIKeyMissingError, pdm.setup)
+        self.assertRaises(APIKeyMissingError, pdm.PostDmarc)
