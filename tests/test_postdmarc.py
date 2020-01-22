@@ -95,6 +95,21 @@ class TestResponse(unittest.TestCase):
             {"domain", "public_token", "created_at", "reporting_uri", "email"},
         )
 
+    @patch.object(pdm.requests.Session, "get")
+    def test_get_dns_snippet(self, mock_get):
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = {
+            "value": r"\"v=DMARC1; p=none; pct=100; "
+            r"rua=mailto:randomhash+1mSgKNr7scM@inbound.postmarkapp.com; "
+            r"sp=none; aspf=r;\"",
+            "name": "_dmarc.wildbit.com.",
+        }
+
+        response = self.connection.get_dns_snippet()
+        self.assertEqual(
+            set(response.keys()), {"value", "name"},
+        )
+
 
 class TestAPIKey(unittest.TestCase):
     """Test that the API key is set correctly."""

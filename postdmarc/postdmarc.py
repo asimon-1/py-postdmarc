@@ -92,7 +92,7 @@ class PostDmarc:
         """Get a record’s information."""
         endpoint_path = "/records/my"
         response = self.session.get(self.endpoint + endpoint_path)
-        self.check_response
+        self.check_response(response)
         return response.json()
 
     def update_record(self, email):
@@ -106,7 +106,10 @@ class PostDmarc:
 
     def get_dns_snippet(self):
         """Get generated DMARC DNS record name and value."""
-        pass
+        endpoint_path = "/records/my/dns"
+        response = self.session.get(self.endpoint + endpoint_path)
+        self.check_response(response)
+        return response.json()
 
     def verify_dns(self):
         """Verify if your DMARC DNS record exists."""
