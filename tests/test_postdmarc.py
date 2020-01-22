@@ -42,16 +42,17 @@ class TestResponse(unittest.TestCase):
         }
         response = self.connection.create_record("tema@wildbit.com", "postmarkapp.com")
 
-        for response_key in (
-            "domain",
-            "public_token",
-            "created_at",
-            "private_token",
-            "reporting_uri",
-            "email",
-        ):
-            with self.subTest(response_key=response_key):
-                self.assertIn(response_key, response)
+        self.assertEqual(
+            set(response.keys()),
+            {
+                "domain",
+                "public_token",
+                "created_at",
+                "private_token",
+                "reporting_uri",
+                "email",
+            },
+        )
 
     @patch.object(pdm.requests.Session, "get")
     def test_get_record(self, mock_get):
@@ -65,16 +66,17 @@ class TestResponse(unittest.TestCase):
             "email": "tema@wildbit.com",
         }
         response = self.connection.get_record()
-        for response_key in (
-            "domain",
-            "public_token",
-            "created_at",
-            "private_token",
-            "reporting_uri",
-            "email",
-        ):
-            with self.subTest(response_key=response_key):
-                self.assertIn(response_key, response)
+        self.assertEqual(
+            set(response.keys()),
+            {
+                "domain",
+                "public_token",
+                "created_at",
+                "private_token",
+                "reporting_uri",
+                "email",
+            },
+        )
 
 
 class TestAPIKey(unittest.TestCase):
