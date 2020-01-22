@@ -12,9 +12,6 @@ class TestResponse(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test_naiive_test(self):
-        pass
-
     @patch.object(pdm.requests.Session, "post")
     def test_status_code_500(self, mock_post):
         mock_post.return_value.status_code = 500
