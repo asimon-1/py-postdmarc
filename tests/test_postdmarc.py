@@ -237,6 +237,14 @@ class TestResponse(unittest.TestCase):
                 },
             )
 
+    @patch.object(pdm.requests.Session, "post")
+    def test_recover_token(self, mock_post):
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json.return_value = {"recovery_initiated": True}
+        response = self.connection.recover_token("wildbit.com")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(set(response.json().keys()), {"recovery_initiated"})
+
 
 class TestAPIKey(unittest.TestCase):
     """Test that the API key is set correctly."""

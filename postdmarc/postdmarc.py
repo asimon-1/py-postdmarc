@@ -193,13 +193,19 @@ class PostDmarc:
         self.check_response(response)
         return response
 
-    def recover_token(self):
+    def recover_token(self, owner):
         """Initiate API token recovery for a domain.
 
         This endpoint is public and doesn't require authentication.
         """
         self.session.headers.update({"Content-Type": "application/json"})
-        pass
+        endpoint_path = "/tokens/recover"
+        body = {"owner": owner}
+        del self.session.headers["X-Api-Token"]
+        response = self.session.post(self.endpoint + endpoint_path, json=body)
+        self.session.headers.update({"X-Api-Token": self.api_key})
+        self.check_response(response)
+        return response
 
     def rotate_token(self):
         """Generate a new API token and replace your existing one with it."""
