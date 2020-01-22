@@ -78,6 +78,23 @@ class TestResponse(unittest.TestCase):
             },
         )
 
+    @patch.object(pdm.requests.Session, "patch")
+    def test_update_record(self, mock_patch):
+        mock_patch.return_value.status_code = 200
+        mock_patch.return_value.json.return_value = {
+            "domain": "postmarkapp.com",
+            "public_token": "1mVgKNr5scA",
+            "created_at": "2014-06-25T19:22:53Z",
+            "reporting_uri": "mailto:randomhash+1mSgANr7scM@inbound.postmarkapp.com",
+            "email": "tema@wildbit.com",
+        }
+
+        response = self.connection.update_record("tema@wildbit.com")
+        self.assertEqual(
+            set(response.keys()),
+            {"domain", "public_token", "created_at", "reporting_uri", "email"},
+        )
+
 
 class TestAPIKey(unittest.TestCase):
     """Test that the API key is set correctly."""

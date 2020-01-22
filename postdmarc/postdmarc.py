@@ -95,10 +95,14 @@ class PostDmarc:
         self.check_response
         return response.json()
 
-    def update_record(self):
+    def update_record(self, email):
         """Update a record’s information."""
         self.session.headers.update({"Content-Type": "application/json"})
-        pass
+        endpoint_path = "/records/patch"
+        body = {"email": email}
+        response = self.session.patch(self.endpoint + endpoint_path, json=body)
+        self.check_response(response)
+        return response.json()
 
     def get_dns_snippet(self):
         """Get generated DMARC DNS record name and value."""
