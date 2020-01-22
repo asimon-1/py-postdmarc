@@ -113,7 +113,10 @@ class PostDmarc:
 
     def verify_dns(self):
         """Verify if your DMARC DNS record exists."""
-        pass
+        endpoint_path = "/records/my/verify"
+        response = self.session.post(self.endpoint + endpoint_path)
+        self.check_response(response)
+        return response.json()
 
     def delete_record(self):
         """Delete a record.

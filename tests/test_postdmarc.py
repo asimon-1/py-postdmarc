@@ -104,11 +104,17 @@ class TestResponse(unittest.TestCase):
             r"sp=none; aspf=r;\"",
             "name": "_dmarc.wildbit.com.",
         }
-
         response = self.connection.get_dns_snippet()
         self.assertEqual(
             set(response.keys()), {"value", "name"},
         )
+
+    @patch.object(pdm.requests.Session, "post")
+    def test_verify_dns(self, mock_post):
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json.return_value = {"verified": "false"}
+        response = self.connection.verify_dns()
+        self.assertEqual(set(response.keys()), {"verified"})
 
 
 class TestAPIKey(unittest.TestCase):
