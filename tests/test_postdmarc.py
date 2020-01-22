@@ -41,9 +41,9 @@ class TestResponse(unittest.TestCase):
             "email": "tema@wildbit.com",
         }
         response = self.connection.create_record("tema@wildbit.com", "postmarkapp.com")
-
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(
-            set(response.keys()),
+            set(response.json().keys()),
             {
                 "domain",
                 "public_token",
@@ -66,8 +66,9 @@ class TestResponse(unittest.TestCase):
             "email": "tema@wildbit.com",
         }
         response = self.connection.get_record()
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(
-            set(response.keys()),
+            set(response.json().keys()),
             {
                 "domain",
                 "public_token",
@@ -90,8 +91,9 @@ class TestResponse(unittest.TestCase):
         }
 
         response = self.connection.update_record("tema@wildbit.com")
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(
-            set(response.keys()),
+            set(response.json().keys()),
             {"domain", "public_token", "created_at", "reporting_uri", "email"},
         )
 
@@ -105,8 +107,9 @@ class TestResponse(unittest.TestCase):
             "name": "_dmarc.wildbit.com.",
         }
         response = self.connection.get_dns_snippet()
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(
-            set(response.keys()), {"value", "name"},
+            set(response.json().keys()), {"value", "name"},
         )
 
     @patch.object(pdm.requests.Session, "post")
