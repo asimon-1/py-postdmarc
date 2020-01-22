@@ -209,7 +209,11 @@ class PostDmarc:
 
     def rotate_token(self):
         """Generate a new API token and replace your existing one with it."""
-        pass
+        # TODO: Think about how to implement key rotation within this wrapper
+        endpoint_path = "/records/my/token/rotate"
+        response = self.session.post(self.endpoint + endpoint_path)
+        self.check_response(response)
+        return response
 
 
 if __name__ == "__main__":

@@ -245,6 +245,16 @@ class TestResponse(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(set(response.json().keys()), {"recovery_initiated"})
 
+    @patch.object(pdm.requests.Session, "post")
+    def test_rotate_token(self, mock_post):
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json.return_value = {
+            "private_token": "115d8431-b020-41aa-230e-4d63a0357869"
+        }
+        response = self.connection.rotate_token()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(set(response.json().keys()), {"private_token"})
+
 
 class TestAPIKey(unittest.TestCase):
     """Test that the API key is set correctly."""
