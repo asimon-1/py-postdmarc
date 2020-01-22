@@ -125,7 +125,10 @@ class PostDmarc:
         The email associated with this record will also be unsubscribed from the DMARC
         weekly digests for this domain only.
         """
-        pass
+        endpoint_path = "/records/my"
+        response = self.session.delete(self.endpoint + endpoint_path)
+        self.check_response(response)
+        return response
 
     def list_reports(self):
         """List all received DMARC reports for a given domain.

@@ -117,7 +117,16 @@ class TestResponse(unittest.TestCase):
         mock_post.return_value.status_code = 200
         mock_post.return_value.json.return_value = {"verified": "false"}
         response = self.connection.verify_dns()
-        self.assertEqual(set(response.keys()), {"verified"})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(set(response.json().keys()), {"verified"})
+
+    @patch.object(pdm.requests.Session, "delete")
+    def test_delete_record(self, mock_delete):
+        mock_delete.return_value.status_code = 204
+        mock_delete.return_value.json.return_value = {}
+        response = self.connection.delete_record()
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(set(response.json().keys()), set())
 
 
 class TestAPIKey(unittest.TestCase):
