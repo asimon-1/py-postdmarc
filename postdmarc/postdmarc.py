@@ -130,13 +130,48 @@ class PostDmarc:
         self.check_response(response)
         return response
 
-    def list_reports(self):
+    def list_reports(
+        self,
+        from_date=None,  # TODO: Implement datetime formatting?
+        to_date=None,
+        limit=None,
+        after=None,
+        before=None,
+        reverse=None,
+    ):
         """List all received DMARC reports for a given domain.
 
         List all received DMARC reports for a given domain with the ability to filter
         results by a single date or date range.
+
+        Keyword Arguments:
+
+        from_date   Only include reports received on this date or after.
+        to_date     Only include reports received before this date.
+        limit       Limit the number of returned reports to the specified value.
+                        (default 30, max 50)
+        after       Only include reports with IDs higher than the specified value.
+                        Used for pagination.
+        before      Only include reports with IDs lower than the specified value.
+                        Used for pagination.
+        reverse     Set to true to list reports in reverse order (default false)
         """
-        pass
+        endpoint_path = "/records/my/reports"
+        params = {
+            "from_date": from_date,
+            "to_date": to_date,
+            "limit": limit,
+            "after": after,
+            "before": before,
+            "reverse": reverse,
+        }
+        # TODO: This feels like a very inefficient way to do this...
+        # The goal is to only provide the params which were specified to the GET request
+        params = {key: value for key, value in enumerate(params) if value is not None}
+
+        response = self.session.get(self.endpoint + endpoint_path, params=params)
+        self.check_response(response)
+        return response
 
     def get_report(self):
         """Load full DMARC report details.

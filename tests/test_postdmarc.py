@@ -128,6 +128,45 @@ class TestResponse(unittest.TestCase):
         self.assertEqual(response.status_code, 204)
         self.assertEqual(set(response.json().keys()), set())
 
+    @patch.object(pdm.requests.Session, "get")
+    def test_list_reports(self, mock_get):
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = {
+            "meta": {
+                "next": 276,
+                "next_url": "/records/my/reports?from_date=&to_date=&limit=1&after=276",
+                "total": 2,
+            },
+            "entries": [
+                {
+                    "domain": "wildbit.com",
+                    "date_range_begin": "2014-04-27T20:00:00Z",
+                    "date_range_end": "2014-04-28T19:59:59Z",
+                    "id": 276,
+                    "created_at": "2014-07-25T11:44:55Z",
+                    "external_id": "xxxxxxxxxxx",
+                    "organization_name": "google.com",
+                }
+            ],
+        }
+        response = self.connection.list_reports(
+            from_date="2014-05-17", to_date="2014-06-17", limit=100, after=4
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(set(response.json().keys()), {"meta", "entries"})
+        self.assertEqual(
+            set(response.json()["entries"][0].keys()),
+            {
+                "domain",
+                "date_range_begin",
+                "date_range_end",
+                "id",
+                "created_at",
+                "external_id",
+                "organization_name",
+            },
+        )
+
 
 class TestAPIKey(unittest.TestCase):
     """Test that the API key is set correctly."""
