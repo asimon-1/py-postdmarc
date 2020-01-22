@@ -173,13 +173,25 @@ class PostDmarc:
         self.check_response(response)
         return response
 
-    def get_report(self):
+    def get_report(self, id, fmt="json"):
         """Load full DMARC report details.
 
         Load full DMARC report details as a raw DMARC XML document
         or as our own JSON representation.
         """
-        pass
+        if fmt == "json":
+            pass
+        elif fmt == "xml":
+            self.session.headers.update({"Content-Type": "application/xml"})
+        else:
+            raise errors.BadRequestError(
+                f"Format keyword must be either 'json' or 'xml', not {fmt}."
+            )
+
+        endpoint_path = f"/records/my/reports/{id}"
+        response = self.session.get(self.endpoint + endpoint_path)
+        self.check_response(response)
+        return response
 
     def recover_token(self):
         """Initiate API token recovery for a domain.
