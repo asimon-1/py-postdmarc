@@ -53,6 +53,29 @@ class TestResponse(unittest.TestCase):
             with self.subTest(response_key=response_key):
                 self.assertIn(response_key, response)
 
+    @patch.object(pdm.requests.Session, "get")
+    def test_get_record(self, mock_get):
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = {
+            "domain": "postmarkapp.com",
+            "public_token": "1mVgKNr5scA",
+            "created_at": "2014-06-25T19:22:53Z",
+            "private_token": "005d8431-b020-41aa-230e-4d63a0357869",
+            "reporting_uri": "mailto:randomhash+1mSgANr7scM@inbound.postmarkapp.com",
+            "email": "tema@wildbit.com",
+        }
+        response = self.connection.get_record()
+        for response_key in (
+            "domain",
+            "public_token",
+            "created_at",
+            "private_token",
+            "reporting_uri",
+            "email",
+        ):
+            with self.subTest(response_key=response_key):
+                self.assertIn(response_key, response)
+
 
 class TestAPIKey(unittest.TestCase):
     """Test that the API key is set correctly."""

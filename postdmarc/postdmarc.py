@@ -1,4 +1,7 @@
-"""Provide a Python wrapper for the Postmark DMARC API."""
+"""Provide a Python wrapper for the Postmark DMARC API.
+
+See the documentation at https://dmarc.postmarkapp.com/api/
+"""
 import os
 import requests
 
@@ -87,7 +90,10 @@ class PostDmarc:
 
     def get_record(self):
         """Get a record’s information."""
-        pass
+        endpoint_path = "/records/my"
+        response = self.session.get(self.endpoint + endpoint_path)
+        self.check_response
+        return response.json()
 
     def update_record(self):
         """Update a record’s information."""
