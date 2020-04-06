@@ -1,3 +1,6 @@
+# Package
+dateparser
+
 # Testing
 pytest
 pytest-cov
@@ -10,3 +13,5 @@ flake8
 pydocstyle
 flake8-eradicate
 bandit
+pylint
+mypy

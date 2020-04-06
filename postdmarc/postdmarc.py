@@ -3,16 +3,21 @@
 See the documentation at https://dmarc.postmarkapp.com/api/
 """
 import os
+import json
+from datetime import datetime, timedelta
+
 import requests
 from dateparser import parse
 
 from . import pdm_exceptions as errors
 
 
-def validate_date(date):
+def format_date(date):
     """Convert date to the format required by PostMark."""
     if type(date) is str:
         date_parsed = parse(date, settings={"STRICT_PARSING": True})
+    elif type(date) is datetime:
+        date_parsed = date
     if date_parsed is None:
         raise ValueError(f"Could not parse the date: {date}")
     return date_parsed.strftime(r"%Y-%m-%d")
@@ -167,8 +172,8 @@ class PostDmarc:
         """
         endpoint_path = "/records/my/reports"
         params = {
-            "from_date": validate_date(from_date),
-            "to_date": validate_date(to_date),
+            "from_date": vformat_datealidate_date(from_date),
+            "to_date": vformat_datealidate_date(to_date),
             "limit": limit,
             "after": after,
             "before": before,
@@ -201,6 +206,39 @@ class PostDmarc:
         self.check_response(response)
         return response
 
+    def export_all_reports(self, from_date, to_date, filepath):
+        """Query for all forensic reports in a date range and export to a json file.
+
+        Arguments:
+        from_date   Only include reports received on this date or after.
+        to_date     Only include reports received before this date.
+        filepath    The file name to export to. Should end in ".json".
+        """
+        reports = []
+        output = []
+
+        params = {
+            "from_date": from_date,
+            "to_date": to_date,
+            "after": None,
+        }
+        # Get first batch of reports
+        current_reports = self.list_reports(**params).json()
+        params["after"] = current_reports["meta"]["next"]
+        reports.extend(current_reports["entries"])
+
+        # Get any subsequent reports
+        while params["after"] is not None:
+            current_reports = self.list_reports(**params).json()
+            params["after"] = current_reports["meta"]["next"]
+            reports.extend(current_reports["entries"])
+
+        ids = [entry["id"] for entry in reports]
+        output.extend([self.get_report(ident).json() for ident in ids])
+
+        with open(filepath, "w") as f:
+            json.dump(output, f)
+
     def recover_token(self, owner):
         """Initiate API token recovery for a domain.
 
@@ -224,5 +262,13 @@ class PostDmarc:
         return response
 
 
-if __name__ == "__main__":
+def main():
+    """Run default behavior: retrieve forensic reports from the past 7 days."""
     pdm_obj = PostDmarc()
+    pdm_obj.export_all_reports(
+        datetime.now() + timedelta(days=-7), datetime.now(), "reports.json"
+    )
+
+
+if __name__ == "__main__":
+    main()

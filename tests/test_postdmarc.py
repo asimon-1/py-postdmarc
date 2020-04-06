@@ -6,6 +6,8 @@ import postdmarc.pdm_exceptions as errors
 
 
 class TestResponse(unittest.TestCase):
+    """Test that each of the API requests are handled correctly."""
+
     def setUp(self):
         self.connection = pdm.PostDmarc()
 
@@ -14,6 +16,7 @@ class TestResponse(unittest.TestCase):
 
     @patch.object(pdm.requests.Session, "post")
     def test_status_code_500(self, mock_post):
+        """Test that an exception is raised on internal server error."""
         mock_post.return_value.status_code = 500
         mock_post.return_value.json.return_value = {
             "message": "Failed to create a subscription "
