@@ -4,8 +4,18 @@ See the documentation at https://dmarc.postmarkapp.com/api/
 """
 import os
 import requests
+from dateparser import parse
 
 from . import pdm_exceptions as errors
+
+
+def validate_date(date):
+    """Convert date to the format required by PostMark."""
+    if type(date) is str:
+        date_parsed = parse(date, settings={"STRICT_PARSING": True})
+    if date_parsed is None:
+        raise ValueError(f"Could not parse the date: {date}")
+    return date_parsed.strftime(r"%Y-%m-%d")
 
 
 class PostDmarc:
@@ -32,7 +42,7 @@ class PostDmarc:
                     os.path.dirname(os.path.dirname(__file__)), "PM_API.key"
                 )
                 with open(path, "r") as f:
-                    PM_API_KEY = f.read()
+                    PM_API_KEY = f.read().strip()
             except FileNotFoundError:
                 raise errors.APIKeyMissingError(
                     f"All methods require an API key. Please set the API key in either "
@@ -132,7 +142,7 @@ class PostDmarc:
 
     def list_reports(
         self,
-        from_date=None,  # TODO: Implement datetime formatting?
+        from_date=None,
         to_date=None,
         limit=None,
         after=None,
@@ -145,7 +155,6 @@ class PostDmarc:
         results by a single date or date range.
 
         Keyword Arguments:
-
         from_date   Only include reports received on this date or after.
         to_date     Only include reports received before this date.
         limit       Limit the number of returned reports to the specified value.
@@ -158,16 +167,15 @@ class PostDmarc:
         """
         endpoint_path = "/records/my/reports"
         params = {
-            "from_date": from_date,
-            "to_date": to_date,
+            "from_date": validate_date(from_date),
+            "to_date": validate_date(to_date),
             "limit": limit,
             "after": after,
             "before": before,
             "reverse": reverse,
         }
-        # TODO: This feels like a very inefficient way to do this...
-        # The goal is to only provide the params which were specified to the GET request
-        params = {key: value for key, value in enumerate(params) if value is not None}
+
+        params = {key: value for key, value in params.items() if value is not None}
 
         response = self.session.get(self.endpoint + endpoint_path, params=params)
         self.check_response(response)
