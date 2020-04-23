@@ -5,6 +5,8 @@ See the documentation at https://dmarc.postmarkapp.com/api/
 import os
 import json
 from datetime import datetime, timedelta
+from typing import Union, DefaultDict, Optional, Type
+from collections import defaultdict
 
 import requests
 from dateparser import parse
@@ -12,21 +14,24 @@ from dateparser import parse
 from . import pdm_exceptions as errors
 
 
-def format_date(date):
+def format_date(date: Union[str, datetime, None]) -> Union[str, None]:
     """Convert date to the format required by PostMark."""
+    if date is None:
+        return None
+
     if type(date) is str:
         date_parsed = parse(date, settings={"STRICT_PARSING": True})
+        if date_parsed is None:
+            raise ValueError(f"Could not parse the date: {date}")
     elif type(date) is datetime:
         date_parsed = date
-    if date_parsed is None:
-        raise ValueError(f"Could not parse the date: {date}")
     return date_parsed.strftime(r"%Y-%m-%d")
 
 
 class PostDmarc:
     """Connection object to the Postmark DMARC API."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize object with default values."""
         self.api_key = self.get_api_key()
         self.endpoint = "https://dmarc.postmarkapp.com"
@@ -35,7 +40,7 @@ class PostDmarc:
             {"X-Api-Token": self.api_key, "Accept": "application/json"}
         )
 
-    def get_api_key(self):
+    def get_api_key(self) -> str:
         """Set the API key and create the session."""
         # Try to load the API key from the environment variable
         PM_API_KEY = os.environ.get("POSTMARK_API_KEY", None)
@@ -56,7 +61,7 @@ class PostDmarc:
                 )
         return PM_API_KEY
 
-    def check_response(self, response):
+    def check_response(self, response: requests.Response) -> None:
         """Check the status code of the API response.
 
         200 — OK
@@ -73,27 +78,29 @@ class PostDmarc:
             Our servers have failed to process your request.
 
         """
-        mapping = {
-            200: None,
-            204: None,
-            303: None,
-            400: errors.BadRequestError,
-            404: errors.PageNotFoundError,
-            422: errors.UnprocessableEntityError,
-            500: errors.InternalServerError,
-        }
+        mapping: DefaultDict[int, Optional[Type[Exception]]] = defaultdict(
+            Type[errors.UnrecognizedStatusCodeError]
+        )
+        mapping.update(
+            [
+                (200, None),
+                (204, None),
+                (303, None),
+                (400, errors.BadRequestError),
+                (404, errors.PageNotFoundError),
+                (422, errors.UnprocessableEntityError),
+                (500, errors.InternalServerError),
+            ]
+        )
 
-        try:
-            mapped_status_code = mapping[response.status_code]
-        except KeyError:
-            mapped_status_code = errors.UnrecognizedStatusCodeError
+        mapped_status_code = mapping[response.status_code]
 
         if mapped_status_code is not None:
             raise mapped_status_code(response.json()["message"])
         else:
             return None
 
-    def create_record(self, email, domain):
+    def create_record(self, email: str, domain: str) -> requests.Response:
         """Create a new DMARC record for a given domain and email."""
         endpoint_path = "/records"
         body = {"email": email, "domain": domain}
@@ -103,14 +110,14 @@ class PostDmarc:
         self.check_response(response)
         return response
 
-    def get_record(self):
+    def get_record(self) -> requests.Response:
         """Get a record’s information."""
         endpoint_path = "/records/my"
         response = self.session.get(self.endpoint + endpoint_path)
         self.check_response(response)
         return response
 
-    def update_record(self, email):
+    def update_record(self, email: str) -> requests.Response:
         """Update a record’s information."""
         self.session.headers.update({"Content-Type": "application/json"})
         endpoint_path = "/records/patch"
@@ -119,21 +126,21 @@ class PostDmarc:
         self.check_response(response)
         return response
 
-    def get_dns_snippet(self):
+    def get_dns_snippet(self) -> requests.Response:
         """Get generated DMARC DNS record name and value."""
         endpoint_path = "/records/my/dns"
         response = self.session.get(self.endpoint + endpoint_path)
         self.check_response(response)
         return response
 
-    def verify_dns(self):
+    def verify_dns(self) -> requests.Response:
         """Verify if your DMARC DNS record exists."""
         endpoint_path = "/records/my/verify"
         response = self.session.post(self.endpoint + endpoint_path)
         self.check_response(response)
         return response
 
-    def delete_record(self):
+    def delete_record(self) -> requests.Response:
         """Delete a record.
 
         Deleting a record will stop processing data for this domain.
@@ -147,13 +154,13 @@ class PostDmarc:
 
     def list_reports(
         self,
-        from_date=None,
-        to_date=None,
-        limit=None,
-        after=None,
-        before=None,
-        reverse=None,
-    ):
+        from_date: Union[str, datetime, None] = None,
+        to_date: Union[str, datetime, None] = None,
+        limit: int = None,
+        after: int = None,
+        before: int = None,
+        reverse: bool = None,
+    ) -> requests.Response:
         """List all received DMARC reports for a given domain.
 
         List all received DMARC reports for a given domain with the ability to filter
@@ -172,8 +179,8 @@ class PostDmarc:
         """
         endpoint_path = "/records/my/reports"
         params = {
-            "from_date": vformat_datealidate_date(from_date),
-            "to_date": vformat_datealidate_date(to_date),
+            "from_date": format_date(from_date),
+            "to_date": format_date(to_date),
             "limit": limit,
             "after": after,
             "before": before,
@@ -186,7 +193,7 @@ class PostDmarc:
         self.check_response(response)
         return response
 
-    def get_report(self, id, fmt="json"):
+    def get_report(self, id: int, fmt: str = "json") -> requests.Response:
         """Load full DMARC report details.
 
         Load full DMARC report details as a raw DMARC XML document
@@ -206,7 +213,12 @@ class PostDmarc:
         self.check_response(response)
         return response
 
-    def export_all_reports(self, from_date, to_date, filepath):
+    def export_all_reports(
+        self,
+        from_date: Union[str, datetime],
+        to_date: Union[str, datetime],
+        filepath: str,
+    ) -> None:
         """Query for all forensic reports in a date range and export to a json file.
 
         Arguments:
@@ -239,7 +251,7 @@ class PostDmarc:
         with open(filepath, "w") as f:
             json.dump(output, f)
 
-    def recover_token(self, owner):
+    def recover_token(self, owner: str) -> requests.Response:
         """Initiate API token recovery for a domain.
 
         This endpoint is public and doesn't require authentication.
@@ -253,7 +265,7 @@ class PostDmarc:
         self.check_response(response)
         return response
 
-    def rotate_token(self):
+    def rotate_token(self) -> requests.Response:
         """Generate a new API token and replace your existing one with it."""
         # TODO: Think about how to implement key rotation within this wrapper
         endpoint_path = "/records/my/token/rotate"
@@ -262,7 +274,7 @@ class PostDmarc:
         return response
 
 
-def main():
+def main() -> None:
     """Run default behavior: retrieve forensic reports from the past 7 days."""
     pdm_obj = PostDmarc()
     pdm_obj.export_all_reports(
