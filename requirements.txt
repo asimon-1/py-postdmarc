@@ -1,6 +1,7 @@
 # Package
 dateparser
 requests
+fire
 
 # Testing
 pytest

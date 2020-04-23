@@ -1,8 +1,9 @@
-import unittest
 import os
+import unittest
 from unittest.mock import patch
-import postdmarc.postdmarc as pdm
+
 import postdmarc.pdm_exceptions as errors
+import postdmarc.postdmarc as pdm
 
 
 class TestResponse(unittest.TestCase):
@@ -40,7 +41,7 @@ class TestResponse(unittest.TestCase):
         response = self.connection.create_record("tema@wildbit.com", "postmarkapp.com")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
-            set(response.json().keys()),
+            set(response.json.keys()),
             {
                 "domain",
                 "public_token",
@@ -65,7 +66,7 @@ class TestResponse(unittest.TestCase):
         response = self.connection.get_record()
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
-            set(response.json().keys()),
+            set(response.json.keys()),
             {
                 "domain",
                 "public_token",
@@ -90,7 +91,7 @@ class TestResponse(unittest.TestCase):
         response = self.connection.update_record("tema@wildbit.com")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
-            set(response.json().keys()),
+            set(response.json.keys()),
             {"domain", "public_token", "created_at", "reporting_uri", "email"},
         )
 
@@ -106,7 +107,7 @@ class TestResponse(unittest.TestCase):
         response = self.connection.get_dns_snippet()
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
-            set(response.json().keys()), {"value", "name"},
+            set(response.json.keys()), {"value", "name"},
         )
 
     @patch.object(pdm.requests.Session, "post")
@@ -115,7 +116,7 @@ class TestResponse(unittest.TestCase):
         mock_post.return_value.json.return_value = {"verified": "false"}
         response = self.connection.verify_dns()
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(set(response.json().keys()), {"verified"})
+        self.assertEqual(set(response.json.keys()), {"verified"})
 
     @patch.object(pdm.requests.Session, "delete")
     def test_delete_record(self, mock_delete):
@@ -123,7 +124,7 @@ class TestResponse(unittest.TestCase):
         mock_delete.return_value.json.return_value = {}
         response = self.connection.delete_record()
         self.assertEqual(response.status_code, 204)
-        self.assertEqual(set(response.json().keys()), set())
+        self.assertEqual(set(response.json.keys()), set())
 
     @patch.object(pdm.requests.Session, "get")
     def test_list_reports(self, mock_get):
@@ -150,9 +151,9 @@ class TestResponse(unittest.TestCase):
             from_date="2014-05-17", to_date="2014-06-17", limit=100, after=4
         )
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(set(response.json().keys()), {"meta", "entries"})
+        self.assertEqual(set(response.json.keys()), {"meta", "entries"})
         self.assertEqual(
-            set(response.json()["entries"][0].keys()),
+            set(response.json["entries"][0].keys()),
             {
                 "domain",
                 "date_range_begin",
@@ -200,7 +201,7 @@ class TestResponse(unittest.TestCase):
         response = self.connection.get_report(276)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
-            set(response.json().keys()),
+            set(response.json.keys()),
             {
                 "id",
                 "domain",
@@ -216,7 +217,7 @@ class TestResponse(unittest.TestCase):
             },
         )
         self.assertEqual(
-            set(response.json()["records"][0].keys()),
+            set(response.json["records"][0].keys()),
             {
                 "header_from",
                 "source_ip",
@@ -240,7 +241,7 @@ class TestResponse(unittest.TestCase):
         mock_post.return_value.json.return_value = {"recovery_initiated": True}
         response = self.connection.recover_token("wildbit.com")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(set(response.json().keys()), {"recovery_initiated"})
+        self.assertEqual(set(response.json.keys()), {"recovery_initiated"})
 
     @patch.object(pdm.requests.Session, "post")
     def test_rotate_token(self, mock_post):
@@ -250,7 +251,7 @@ class TestResponse(unittest.TestCase):
         }
         response = self.connection.rotate_token()
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(set(response.json().keys()), {"private_token"})
+        self.assertEqual(set(response.json.keys()), {"private_token"})
 
 
 class TestAPIKey(unittest.TestCase):

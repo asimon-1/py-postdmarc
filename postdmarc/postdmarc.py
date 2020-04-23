@@ -2,12 +2,13 @@
 
 See the documentation at https://dmarc.postmarkapp.com/api/
 """
-import os
 import json
-from datetime import datetime, timedelta
-from typing import Union, DefaultDict, Optional, Type
+import os
 from collections import defaultdict
+from datetime import datetime
+from typing import DefaultDict, NamedTuple, Optional, Type, Union
 
+import fire
 import requests
 from dateparser import parse
 
@@ -26,6 +27,13 @@ def format_date(date: Union[str, datetime, None]) -> Union[str, None]:
     elif type(date) is datetime:
         date_parsed = date
     return date_parsed.strftime(r"%Y-%m-%d")
+
+
+class ResponseTuple(NamedTuple):
+    """Container for bundling response status code and json content."""
+
+    status_code: int
+    json: dict
 
 
 class PostDmarc:
@@ -100,7 +108,7 @@ class PostDmarc:
         else:
             return None
 
-    def create_record(self, email: str, domain: str) -> requests.Response:
+    def create_record(self, email: str, domain: str) -> ResponseTuple:
         """Create a new DMARC record for a given domain and email."""
         endpoint_path = "/records"
         body = {"email": email, "domain": domain}
@@ -108,39 +116,39 @@ class PostDmarc:
         response = self.session.post(self.endpoint + endpoint_path, json=body)
         self.session.headers.update({"X-Api-Token": self.api_key})
         self.check_response(response)
-        return response
+        return ResponseTuple(response.status_code, response.json())
 
-    def get_record(self) -> requests.Response:
+    def get_record(self) -> ResponseTuple:
         """Get a record’s information."""
         endpoint_path = "/records/my"
         response = self.session.get(self.endpoint + endpoint_path)
         self.check_response(response)
-        return response
+        return ResponseTuple(response.status_code, response.json())
 
-    def update_record(self, email: str) -> requests.Response:
+    def update_record(self, email: str) -> ResponseTuple:
         """Update a record’s information."""
         self.session.headers.update({"Content-Type": "application/json"})
         endpoint_path = "/records/patch"
         body = {"email": email}
         response = self.session.patch(self.endpoint + endpoint_path, json=body)
         self.check_response(response)
-        return response
+        return ResponseTuple(response.status_code, response.json())
 
-    def get_dns_snippet(self) -> requests.Response:
+    def get_dns_snippet(self) -> ResponseTuple:
         """Get generated DMARC DNS record name and value."""
         endpoint_path = "/records/my/dns"
         response = self.session.get(self.endpoint + endpoint_path)
         self.check_response(response)
-        return response
+        return ResponseTuple(response.status_code, response.json())
 
-    def verify_dns(self) -> requests.Response:
+    def verify_dns(self) -> ResponseTuple:
         """Verify if your DMARC DNS record exists."""
         endpoint_path = "/records/my/verify"
         response = self.session.post(self.endpoint + endpoint_path)
         self.check_response(response)
-        return response
+        return ResponseTuple(response.status_code, response.json())
 
-    def delete_record(self) -> requests.Response:
+    def delete_record(self) -> ResponseTuple:
         """Delete a record.
 
         Deleting a record will stop processing data for this domain.
@@ -150,7 +158,7 @@ class PostDmarc:
         endpoint_path = "/records/my"
         response = self.session.delete(self.endpoint + endpoint_path)
         self.check_response(response)
-        return response
+        return ResponseTuple(response.status_code, response.json())
 
     def list_reports(
         self,
@@ -160,7 +168,7 @@ class PostDmarc:
         after: int = None,
         before: int = None,
         reverse: bool = None,
-    ) -> requests.Response:
+    ) -> ResponseTuple:
         """List all received DMARC reports for a given domain.
 
         List all received DMARC reports for a given domain with the ability to filter
@@ -191,9 +199,9 @@ class PostDmarc:
 
         response = self.session.get(self.endpoint + endpoint_path, params=params)
         self.check_response(response)
-        return response
+        return ResponseTuple(response.status_code, response.json())
 
-    def get_report(self, id: int, fmt: str = "json") -> requests.Response:
+    def get_report(self, id: int, fmt: str = "json") -> ResponseTuple:
         """Load full DMARC report details.
 
         Load full DMARC report details as a raw DMARC XML document
@@ -211,7 +219,7 @@ class PostDmarc:
         endpoint_path = f"/records/my/reports/{id}"
         response = self.session.get(self.endpoint + endpoint_path)
         self.check_response(response)
-        return response
+        return ResponseTuple(response.status_code, response.json())
 
     def export_all_reports(
         self,
@@ -235,23 +243,23 @@ class PostDmarc:
             "after": None,
         }
         # Get first batch of reports
-        current_reports = self.list_reports(**params).json()
+        current_reports = self.list_reports(**params)
         params["after"] = current_reports["meta"]["next"]
         reports.extend(current_reports["entries"])
 
         # Get any subsequent reports
         while params["after"] is not None:
-            current_reports = self.list_reports(**params).json()
+            current_reports = self.list_reports(**params)
             params["after"] = current_reports["meta"]["next"]
             reports.extend(current_reports["entries"])
 
         ids = [entry["id"] for entry in reports]
-        output.extend([self.get_report(ident).json() for ident in ids])
+        output.extend([self.get_report(ident) for ident in ids])
 
         with open(filepath, "w") as f:
             json.dump(output, f)
 
-    def recover_token(self, owner: str) -> requests.Response:
+    def recover_token(self, owner: str) -> ResponseTuple:
         """Initiate API token recovery for a domain.
 
         This endpoint is public and doesn't require authentication.
@@ -263,23 +271,20 @@ class PostDmarc:
         response = self.session.post(self.endpoint + endpoint_path, json=body)
         self.session.headers.update({"X-Api-Token": self.api_key})
         self.check_response(response)
-        return response
+        return ResponseTuple(response.status_code, response.json())
 
-    def rotate_token(self) -> requests.Response:
+    def rotate_token(self) -> ResponseTuple:
         """Generate a new API token and replace your existing one with it."""
         # TODO: Think about how to implement key rotation within this wrapper
         endpoint_path = "/records/my/token/rotate"
         response = self.session.post(self.endpoint + endpoint_path)
         self.check_response(response)
-        return response
+        return ResponseTuple(response.status_code, response.json())
 
 
 def main() -> None:
     """Run default behavior: retrieve forensic reports from the past 7 days."""
-    pdm_obj = PostDmarc()
-    pdm_obj.export_all_reports(
-        datetime.now() + timedelta(days=-7), datetime.now(), "reports.json"
-    )
+    fire.Fire(PostDmarc)
 
 
 if __name__ == "__main__":
