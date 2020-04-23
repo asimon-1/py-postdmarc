@@ -11,9 +11,6 @@ class TestResponse(unittest.TestCase):
     def setUp(self):
         self.connection = pdm.PostDmarc()
 
-    def tearDown(self):
-        pass
-
     @patch.object(pdm.requests.Session, "post")
     def test_status_code_500(self, mock_post):
         """Test that an exception is raised on internal server error."""
@@ -167,75 +164,75 @@ class TestResponse(unittest.TestCase):
             },
         )
 
-        @patch.object(pdm.requests.Session, "get")
-        def test_get_report(self, mock_get):
-            mock_get.return_value.status_code = 200
-            mock_get.return_value.json.return_value = {
-                "id": 276,
-                "domain": "wildbit.com",
-                "date_range_begin": "2014-04-27T20:00:00Z",
-                "date_range_end": "2014-04-28T19:59:59Z",
-                "source_uri": "mailto:noreply-dmarc-support@google.com",
-                "external_id": "xxxxxxxxx",
-                "email": "noreply-dmarc-support@google.com",
-                "organization_name": "google.com",
-                "created_at": "2014-07-25T11:44:55Z",
-                "extra_contact_info": ""
-                "http://support.google.com/a/bin/answer.py?answer=2466580",
-                "records": [
-                    {
-                        "header_from": "wildbit.com",
-                        "source_ip": "127.0.0.1",
-                        "source_ip_version": 4,
-                        "host_name": "example.org.",
-                        "count": 1,
-                        "policy_evaluated_spf": "fail",
-                        "policy_evaluated_dkim": "fail",
-                        "policy_evaluated_disposition": "none",
-                        "policy_evaluated_reason_type": None,
-                        "spf_domain": "example.org",
-                        "spf_result": "pass",
-                        "dkim_domain": None,
-                        "dkim_result": None,
-                    }
-                ],
-            }
-            response = self.connection.get_report(276)
-            self.assertEqual(response.status_code, 200)
-            self.assertEqual(
-                set(response.json().keys()),
+    @patch.object(pdm.requests.Session, "get")
+    def test_get_report(self, mock_get):
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = {
+            "id": 276,
+            "domain": "wildbit.com",
+            "date_range_begin": "2014-04-27T20:00:00Z",
+            "date_range_end": "2014-04-28T19:59:59Z",
+            "source_uri": "mailto:noreply-dmarc-support@google.com",
+            "external_id": "xxxxxxxxx",
+            "email": "noreply-dmarc-support@google.com",
+            "organization_name": "google.com",
+            "created_at": "2014-07-25T11:44:55Z",
+            "extra_contact_info": ""
+            "https://support.google.com/a/bin/answer.py?answer=2466580",
+            "records": [
                 {
-                    "id",
-                    "domain",
-                    "date_range_begin",
-                    "date_range_end",
-                    "source_uri",
-                    "external_id",
-                    "email",
-                    "organization_name",
-                    "created_at",
-                    "extra_contact_info",
-                    "records",
-                },
-            )
-            self.assertEqual(
-                set(response.json()["records"][0].keys()),
-                {
-                    "header_from",
-                    "source_ip",
-                    "source_ip_version",
-                    "host_name",
-                    "count",
-                    "policy_evaluated_spf",
-                    "policy_evaluated_dkim",
-                    "policy_evaluated_disposition",
-                    "policy_evaluated_reason_type",
-                    "spf_domain",
-                    "spf_result",
-                    "dkim_domain",
-                    "dkim_result",
-                },
-            )
+                    "header_from": "wildbit.com",
+                    "source_ip": "127.0.0.1",
+                    "source_ip_version": 4,
+                    "host_name": "example.org.",
+                    "count": 1,
+                    "policy_evaluated_spf": "fail",
+                    "policy_evaluated_dkim": "fail",
+                    "policy_evaluated_disposition": "none",
+                    "policy_evaluated_reason_type": None,
+                    "spf_domain": "example.org",
+                    "spf_result": "pass",
+                    "dkim_domain": None,
+                    "dkim_result": None,
+                }
+            ],
+        }
+        response = self.connection.get_report(276)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            set(response.json().keys()),
+            {
+                "id",
+                "domain",
+                "date_range_begin",
+                "date_range_end",
+                "source_uri",
+                "external_id",
+                "email",
+                "organization_name",
+                "created_at",
+                "extra_contact_info",
+                "records",
+            },
+        )
+        self.assertEqual(
+            set(response.json()["records"][0].keys()),
+            {
+                "header_from",
+                "source_ip",
+                "source_ip_version",
+                "host_name",
+                "count",
+                "policy_evaluated_spf",
+                "policy_evaluated_dkim",
+                "policy_evaluated_disposition",
+                "policy_evaluated_reason_type",
+                "spf_domain",
+                "spf_result",
+                "dkim_domain",
+                "dkim_result",
+            },
+        )
 
     @patch.object(pdm.requests.Session, "post")
     def test_recover_token(self, mock_post):

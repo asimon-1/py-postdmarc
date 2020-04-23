@@ -200,7 +200,7 @@ class PostDmarc:
         or as our own JSON representation.
         """
         if fmt == "json":
-            pass
+            self.session.headers.update({"Content-Type": "application/json"})
         elif fmt == "xml":
             self.session.headers.update({"Content-Type": "application/xml"})
         else:
