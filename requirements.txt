@@ -1,7 +1,7 @@
 # Package
-dateparser
-requests
-fire
+dateparser>=0.7,<1.0
+requests>=2.0.0,<3.0
+fire>=0.3
 
 # Testing
 pytest

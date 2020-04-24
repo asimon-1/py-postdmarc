@@ -12,7 +12,7 @@ import fire
 import requests
 from dateparser import parse
 
-from . import pdm_exceptions as errors
+from postdmarc import pdm_exceptions as errors
 
 
 def format_date(date: Union[str, datetime, None]) -> Union[str, None]:
@@ -244,14 +244,14 @@ class PostDmarc:
         }
         # Get first batch of reports
         current_reports = self.list_reports(**params)
-        params["after"] = current_reports["meta"]["next"]
-        reports.extend(current_reports["entries"])
+        params["after"] = current_reports.json["meta"]["next"]
+        reports.extend(current_reports.json["entries"])
 
         # Get any subsequent reports
         while params["after"] is not None:
             current_reports = self.list_reports(**params)
-            params["after"] = current_reports["meta"]["next"]
-            reports.extend(current_reports["entries"])
+            params["after"] = current_reports.json["meta"]["next"]
+            reports.extend(current_reports.json["entries"])
 
         ids = [entry["id"] for entry in reports]
         output.extend([self.get_report(ident) for ident in ids])
