@@ -9,7 +9,7 @@ def read(fname):
 
 setup(
     name="py-postdmarc",
-    version="0.0.1a",
+    version="0.0.1",
     author="Andrew Simon",
     author_email="asimon1@protonmail.com",
     description=("A Python CLI interface for the Postmark DMARC monitoring API"),
