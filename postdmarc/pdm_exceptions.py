@@ -35,3 +35,9 @@ class UnrecognizedStatusCodeError(Exception):
     """The server returned an unknown status code."""
 
     pass
+
+
+class APIKeyInvalidError(Exception):
+    """The server rejected the provided API key."""
+
+    pass

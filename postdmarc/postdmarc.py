@@ -95,6 +95,7 @@ class PostDmarc:
                 (204, None),
                 (303, None),
                 (400, errors.BadRequestError),
+                (401, errors.APIKeyInvalidError),
                 (404, errors.PageNotFoundError),
                 (422, errors.UnprocessableEntityError),
                 (500, errors.InternalServerError),
