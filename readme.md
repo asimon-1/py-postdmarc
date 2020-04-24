@@ -30,12 +30,17 @@ postdmarc export_all_reports --from_date 2020-01-01 --to_date 2020-01-08 --filep
 
 ## Installation
 
-> pip install py-postdmarc
+```
+pip install py-postdmarc
+```
 
 ### Clone
 
-- Clone this repo to your local machine using `https://github.com/scuriosity/py-postdmarc`
-- > pip install .
+Clone this repo to your local machine using `https://github.com/scuriosity/py-postdmarc`, then install locally with pip:
+```
+git clone https://github.com/scuriosity/py-postdmarc
+pip install .
+```
 
 ---
 
@@ -68,72 +73,99 @@ For most commands, your Postmark API key is required. The py-postdmarc package c
 
 ```
 py-postdmarc/
-├── postdmarc/
-│   ├── __init__.py
-│   ├── pdm_exceptions.py
-│   └── postdmarc.py
-├── tests/
-│   ├── __init__.py
-│   ├── test_meta.py
-│   └── test_postdmarc.py
-├── license.txt
-├── PM_API.key
-├── readme.md
-├── requirements.txt
-└── setup.py
++-- postdmarc/
+|   +-- __init__.py
+|   +-- pdm_exceptions.py
+|   └-- postdmarc.py
+|
++-- tests/
+|   +-- __init__.py
+|   +-- test_meta.py
+|   └-- test_postdmarc.py
+|
++-- license.txt
++-- PM_API.key
++-- readme.md
++-- requirements.txt
++-- setup.py
 ```
 
 If the key isn't set in one of these two locations, an APIKeyMissingError will be raised.
 
 ### Syntax
 
-- Create a record
+**Create a record**
 
-> postdmarc create_record --email EMAIL@domain.com --domain domain.com
+```
+postdmarc create_record --email EMAIL@domain.com --domain domain.com
+```
 
-- Get a record
+**Get a record**
 
-> postdmarc get_record
+```
+postdmarc get_record
+```
 
-- Update a record
+**Update a record**
 
-> postdmarc update_record --email EMAIL@domeng.com
+```
+postdmarc update_record --email EMAIL@domeng.com
+```
 
-- Get DNS snippet
+**Get DNS snippet**
 
-> postdmarc get_dns_snippet
+```
+postdmarc get_dns_snippet
+```
 
-- Verify DNS
+**Verify DNS**
 
-> postdmarc verify_dns
+```
+postdmarc verify_dns
+```
 
-- Delete a record
+**Delete a record**
 
-> postdmarc delete_record
+```
+postdmarc delete_record
+```
 
-- List DMARC reports
+**List DMARC reports**
 
-> postdmarc list_reports --from_date 01-01-2020 --to_date 01-02-2020
+```
+postdmarc list_reports --from_date 01-01-2020 --to_date 01-02-2020
+```
 
 Optional flags for "after", "before" and "reverse" are provided.
 
-- Get a specific DMARC report by ID
+**Get a specific DMARC report by ID**
 
-> postdmarc get_report --id 1234567
+```
+postdmarc get_report --id 1234567
+```
 
-> postdmarc get_report --id 1234567 --fmt xml
+```
+postdmarc get_report --id 1234567 --fmt xml
+```
 
-- Recover API token
+**Recover API token**
 
-> postdmarc recover_token --owner domain.com
+```
+postdmarc recover_token --owner domain.com
+```
 
-- Rotate API token
+**Rotate API token**
 
-> postdmarc rotate_token
+```
+postdmarc rotate_token
+```
 
-- Export all forensic reports
+**Export all forensic reports**
 
-> postdmarc export_all_reports --from_date 2020-01-01 --to_date 2020-01-08 --filepath reports.json
+```
+postdmarc export_all_reports --from_date 2020-01-01 --to_date 2020-01-08 --filepath reports.json
+```
+
 ---
 
 ## Contributing
